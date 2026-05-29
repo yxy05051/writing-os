@@ -1,0 +1,14 @@
+.env
+backend/.env
+backend/venv/
+data/
+/plans/
+!examples/plans/
+frontend/node_modules/
+frontend/.next/
+frontend/tsconfig.tsbuildinfo
+frontend/test-results/
+__pycache__/
+*.pyc
+*.log
+.DS_Store
