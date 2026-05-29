@@ -127,6 +127,12 @@ Do not commit:
 
 See `CONTRIBUTING.md` for local development, test commands, and privacy rules for public contributions.
 
+## Publishing
+
+See `docs/github-publishing.md` for GitHub publishing steps.
+
+For vulnerability reporting and secret-handling guidance, see `SECURITY.md`.
+
 ## License
 
 MIT

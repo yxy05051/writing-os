@@ -28,11 +28,15 @@ This checklist tracks what must be true before publishing Writing OS as a public
 - A standalone local Git repository has been initialized.
 - README includes a generated dashboard screenshot.
 - Runtime state, local environment files, dependency folders, and build artifacts are ignored by Git.
+- GitHub Actions CI has been added for backend tests, frontend type checks, build, and audit.
+- Dependabot has been added for npm, pip, and GitHub Actions updates.
+- Security reporting and GitHub publishing docs have been added.
 
 ## Before Publishing
 
 - Do a final manual file review before the first public push.
-- Create the GitHub repository and push the initial commit.
+- Install or authenticate GitHub CLI, or create an empty GitHub repository in the browser.
+- Push `main` to GitHub and confirm CI passes.
 
 ## Product Roadmap
 
