@@ -55,6 +55,12 @@ pip install -r requirements-dev.txt
 PYTHONPATH=. pytest -q
 ```
 
+For a full prepublish check:
+
+```bash
+bash scripts/prepublish-check.sh
+```
+
 ### Frontend
 
 ```bash
@@ -122,6 +128,8 @@ Do not commit:
 - generated build artifacts
 - private article drafts
 - private planning documents
+
+Optional local forbidden-word checks can be added in `forbidden-patterns.local`. This file is ignored by Git.
 
 ## Contributing
 

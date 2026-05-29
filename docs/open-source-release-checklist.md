@@ -31,6 +31,7 @@ This checklist tracks what must be true before publishing Writing OS as a public
 - GitHub Actions CI has been added for backend tests, frontend type checks, build, and audit.
 - Dependabot has been added for npm, pip, and GitHub Actions updates.
 - Security reporting and GitHub publishing docs have been added.
+- A local prepublish check script has been added for tests, build, audit, and repository safety scanning.
 
 ## Before Publishing
 

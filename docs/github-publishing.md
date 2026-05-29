@@ -36,19 +36,13 @@ git push -u origin main
 
 ## Before the First Public Push
 
-Run:
+Run the full prepublish check:
 
 ```bash
-cd backend
-PYTHONPATH=. pytest -q
+bash scripts/prepublish-check.sh
 ```
 
-```bash
-cd frontend
-node node_modules/typescript/bin/tsc --noEmit
-npm run build
-npm audit --audit-level=moderate
-```
+On Windows with WSL, you can also run `windows/prepublish-check.bat`.
 
 Then manually review:
 
