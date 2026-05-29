@@ -20,6 +20,7 @@ The current open-source version runs as a local web app. A desktop wrapper can b
 - Published/frozen state so agents stop acting on finalized articles.
 - Planning model for importing existing plans or generating a new plan with guidance.
 - Optional export integrations, starting with Notion.
+- Agent settings for limiting specialist agents and controlling API spend.
 
 ## Planning Modes
 

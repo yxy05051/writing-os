@@ -1,15 +1,17 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
-import { deleteCollaborationLog, runFinalEditor, sendCollaborationInstruction } from '@/lib/api'
-import type { Agent, AgentStatus, ArticleState } from '@/lib/types'
-import { AGENT_STATUS_COLOR, AGENT_STATUS_LABEL, ALL_AGENT_STEPS, PIPELINE_STEPS } from '@/lib/types'
+import React, { useEffect, useMemo, useState } from 'react'
+import { deleteCollaborationLog, runFinalEditor, saveAgentSettings, sendCollaborationInstruction } from '@/lib/api'
+import type { Agent, AgentSettings, AgentStatus, ArticleState } from '@/lib/types'
+import { AGENT_STATUS_COLOR, AGENT_STATUS_LABEL, ALL_AGENT_STEPS, OPTIONAL_AGENT_STEPS, PIPELINE_STEPS } from '@/lib/types'
 
 interface SystemDashboardProps {
   agents: Agent[]
   articleNum: number
   articleState?: ArticleState
+  agentSettings?: AgentSettings
   onArticleSaved?: () => void
+  onAgentSettingsSaved?: () => void
   onArticleChange?: (articleNum: number) => void
   onOpenEditor?: () => void
 }
@@ -44,8 +46,14 @@ const responsibilities: Record<string, string> = {
 }
 
 const AGENTS_PER_FLOOR = 4
+const DEFAULT_AGENT_SETTINGS: AgentSettings = {
+  requiredPipelineAgents: ['research', 'structure', 'writer', 'final_editor'],
+  enabledCollaborationAgents: ['structure', 'writer', 'reader_sim', 'fact_check', 'style', 'reviewer'],
+  maxCollaborationAgents: 2,
+}
 const coreAgentIds = PIPELINE_STEPS.map((step) => step.id)
 const agentCatalog = new Map(ALL_AGENT_STEPS.map((step) => [step.id, step]))
+const optionalCollaborationSteps = OPTIONAL_AGENT_STEPS.filter((step) => step.id !== 'final_editor')
 
 function createDisplayAgent(agentId: string, status: AgentStatus = 'idle'): Agent {
   const step = agentCatalog.get(agentId)
@@ -194,7 +202,9 @@ export default function SystemDashboard({
   agents,
   articleNum,
   articleState,
+  agentSettings,
   onArticleSaved,
+  onAgentSettingsSaved,
   onArticleChange,
   onOpenEditor,
 }: SystemDashboardProps) {
@@ -206,8 +216,15 @@ export default function SystemDashboard({
   const [showComputerBrief, setShowComputerBrief] = useState(false)
   const [isDeletingLog, setIsDeletingLog] = useState(false)
   const [isFinalizing, setIsFinalizing] = useState(false)
+  const [localAgentSettings, setLocalAgentSettings] = useState<AgentSettings>(agentSettings ?? DEFAULT_AGENT_SETTINGS)
+  const [isSavingAgentSettings, setIsSavingAgentSettings] = useState(false)
+  const [agentSettingsStatus, setAgentSettingsStatus] = useState('')
   const frozen = Boolean(articleState?.officialPublished || articleState?.collaboration?.frozen)
   const collaborationLog = articleState?.collaboration?.log ?? []
+
+  useEffect(() => {
+    setLocalAgentSettings(agentSettings ?? DEFAULT_AGENT_SETTINGS)
+  }, [agentSettings])
 
   const displayAgents = useMemo(() => {
     const activeAgentIds = articleState?.collaboration?.activeAgents ?? []
@@ -253,6 +270,10 @@ export default function SystemDashboard({
   const selectedAgentActivity = getAgentActivityText(selectedAgent)
   const finalDraft = articleState?.finalDraft ?? articleState?.draftHtml ?? ''
   const canRunFinalEditor = Boolean(articleState?.agentOutputs?.writer && !articleState?.officialPublished)
+  const enabledAgentSet = useMemo(
+    () => new Set(localAgentSettings.enabledCollaborationAgents),
+    [localAgentSettings.enabledCollaborationAgents]
+  )
 
   const summary = useMemo(() => {
     const running = displayAgents.filter((agent) => agent.status === 'running').length
@@ -310,6 +331,38 @@ export default function SystemDashboard({
       setStatus(e instanceof Error ? e.message : 'Failed to start final editor')
     } finally {
       setIsFinalizing(false)
+    }
+  }
+
+  const toggleCollaborationAgent = (agentId: string) => {
+    setAgentSettingsStatus('')
+    setLocalAgentSettings((settings) => {
+      const enabled = new Set(settings.enabledCollaborationAgents)
+      if (enabled.has(agentId)) {
+        enabled.delete(agentId)
+      } else {
+        enabled.add(agentId)
+      }
+      const nextEnabled = Array.from(enabled)
+      return {
+        ...settings,
+        enabledCollaborationAgents: nextEnabled.length ? nextEnabled : ['reviewer'],
+      }
+    })
+  }
+
+  const handleSaveAgentSettings = async () => {
+    setIsSavingAgentSettings(true)
+    setAgentSettingsStatus('')
+    try {
+      const saved = await saveAgentSettings(localAgentSettings)
+      setLocalAgentSettings(saved)
+      setAgentSettingsStatus('Agent settings saved.')
+      onAgentSettingsSaved?.()
+    } catch (e) {
+      setAgentSettingsStatus(e instanceof Error ? e.message : 'Failed to save agent settings')
+    } finally {
+      setIsSavingAgentSettings(false)
     }
   }
 
@@ -560,6 +613,68 @@ export default function SystemDashboard({
               {status}
             </div>
           )}
+
+          <div className="agent-settings-panel">
+            <div className="agent-settings-head">
+              <div>
+                <h3>Agent Settings</h3>
+                <p>Core pipeline always uses Research, Structure, Writing, and Final editor.</p>
+              </div>
+              <span>{localAgentSettings.maxCollaborationAgents} max</span>
+            </div>
+
+            <label className="agent-settings-slider">
+              <span>Max specialist agents per round</span>
+              <input
+                type="range"
+                min={1}
+                max={4}
+                value={localAgentSettings.maxCollaborationAgents}
+                onChange={(e) => {
+                  setAgentSettingsStatus('')
+                  setLocalAgentSettings((settings) => ({
+                    ...settings,
+                    maxCollaborationAgents: Number(e.target.value),
+                  }))
+                }}
+              />
+            </label>
+
+            <div className="agent-settings-list">
+              {optionalCollaborationSteps.map((step) => (
+                <label key={step.id} className="agent-settings-row">
+                  <input
+                    type="checkbox"
+                    checked={enabledAgentSet.has(step.id)}
+                    onChange={() => toggleCollaborationAgent(step.id)}
+                  />
+                  <span>{step.name}</span>
+                </label>
+              ))}
+            </div>
+
+            <button
+              className="btn btn-secondary"
+              style={{ width: '100%', justifyContent: 'center', marginTop: 10 }}
+              onClick={handleSaveAgentSettings}
+              disabled={isSavingAgentSettings}
+            >
+              {isSavingAgentSettings ? 'Saving...' : 'Save agent settings'}
+            </button>
+
+            {agentSettingsStatus && (
+              <div
+                className="collab-command-status"
+                style={{
+                  color: agentSettingsStatus.includes('Failed') || agentSettingsStatus.includes('[API')
+                    ? 'var(--accent-red)'
+                    : 'var(--text-secondary)',
+                }}
+              >
+                {agentSettingsStatus}
+              </div>
+            )}
+          </div>
         </aside>
       </section>
     </div>

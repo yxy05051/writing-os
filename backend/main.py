@@ -12,7 +12,7 @@ from typing import Optional
 
 from ws_manager import WebSocketManager
 from pipeline import AGENT_ORDER, Pipeline
-from state import load_state, update_article, save_state, get_covered_concepts
+from state import get_agent_settings, load_state, update_agent_settings, update_article, save_state, get_covered_concepts
 from lessons import load_lessons, add_lesson
 from publish import publish_to_notion, copy_for_publish
 from collaboration import run_collaboration
@@ -110,6 +110,11 @@ class GeneratePlanRequest(BaseModel):
     depth: Optional[str] = ""
     channel: Optional[str] = ""
     article_count: Optional[int] = 6
+
+
+class AgentSettingsRequest(BaseModel):
+    enabled_collaboration_agents: list[str]
+    max_collaboration_agents: int = 2
 
 
 def mark_completed(article_num: int):
@@ -318,6 +323,16 @@ async def get_state():
         "total": len(AGENT_ORDER),
     }
     return state
+
+
+@app.get("/api/agent-settings")
+async def get_agent_settings_api():
+    return get_agent_settings()
+
+
+@app.post("/api/agent-settings")
+async def save_agent_settings_api(req: AgentSettingsRequest):
+    return update_agent_settings(req.model_dump())
 
 
 @app.get("/api/articles")

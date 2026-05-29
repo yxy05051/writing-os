@@ -1,5 +1,6 @@
 import type {
   ArticleState,
+  AgentSettings,
   CollaborationInstructionResponse,
   CollaborationState,
   ConfirmPublishedResponse,
@@ -12,6 +13,23 @@ export interface PlanPreviewArticle {
   full_title: string
   goal: string
   tree_position: string
+}
+
+function normalizeAgentSettings(raw: unknown): AgentSettings {
+  const row = (raw ?? {}) as Record<string, unknown>
+  return {
+    requiredPipelineAgents: (
+      row.required_pipeline_agents
+      ?? row.requiredPipelineAgents
+      ?? ['research', 'structure', 'writer', 'final_editor']
+    ) as string[],
+    enabledCollaborationAgents: (
+      row.enabled_collaboration_agents
+      ?? row.enabledCollaborationAgents
+      ?? ['structure', 'writer', 'reader_sim', 'fact_check', 'style', 'reviewer']
+    ) as string[],
+    maxCollaborationAgents: Number(row.max_collaboration_agents ?? row.maxCollaborationAgents ?? 2),
+  }
 }
 
 export interface PlanPreviewResponse {
@@ -100,6 +118,7 @@ export async function fetchState(): Promise<WritingState> {
     completed: (raw.completed as number[]) ?? [],
     articles,
     coveredConcepts: (raw.covered_concepts as string[]) ?? [],
+    agentSettings: normalizeAgentSettings(raw.agent_settings ?? raw.agentSettings),
     pipeline: raw.pipeline
       ? {
           running: Boolean((raw.pipeline as Record<string, unknown>).running),
@@ -113,6 +132,21 @@ export async function fetchState(): Promise<WritingState> {
         }
       : undefined,
   }
+}
+
+export async function fetchAgentSettings(): Promise<AgentSettings> {
+  return normalizeAgentSettings(await request<Record<string, unknown>>('/agent-settings'))
+}
+
+export async function saveAgentSettings(settings: AgentSettings): Promise<AgentSettings> {
+  const raw = await request<Record<string, unknown>>('/agent-settings', {
+    method: 'POST',
+    body: JSON.stringify({
+      enabled_collaboration_agents: settings.enabledCollaborationAgents,
+      max_collaboration_agents: settings.maxCollaborationAgents,
+    }),
+  })
+  return normalizeAgentSettings(raw)
 }
 
 export async function startPipeline(articleNum: number): Promise<void> {

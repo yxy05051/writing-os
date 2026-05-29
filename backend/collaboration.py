@@ -4,12 +4,13 @@ from uuid import uuid4
 
 from agents.fact_check import FactCheckAgent
 from agents.growth import GrowthAgent
+from agents.distributor import DistributorAgent
 from agents.reader_sim import ReaderSimAgent
 from agents.reviewer import ReviewerAgent
 from agents.style import StyleAgent
 from agents.structure import StructureAgent
 from agents.writer import WriterAgent
-from state import get_covered_concepts, load_state, update_article
+from state import get_agent_settings, get_covered_concepts, load_state, update_article
 
 
 COLLABORATION_AGENTS = {
@@ -20,6 +21,7 @@ COLLABORATION_AGENTS = {
     "style": StyleAgent,
     "reviewer": ReviewerAgent,
     "growth": GrowthAgent,
+    "distributor": DistributorAgent,
 }
 
 _COLLABORATION_LOCKS: dict[int, asyncio.Lock] = {}
@@ -31,7 +33,7 @@ def _collaboration_lock(article_num: int) -> asyncio.Lock:
     return _COLLABORATION_LOCKS[article_num]
 
 
-def _select_agents(instruction: str) -> list[str]:
+def _select_agents(instruction: str, settings: dict | None = None) -> list[str]:
     text = instruction.lower()
     selected: list[str] = []
     rules = [
@@ -41,6 +43,7 @@ def _select_agents(instruction: str) -> list[str]:
         ("fact_check", ["事实", "数据", "准确", "校对", "引用"]),
         ("style", ["风格", "表达", "语气", "标题", "金句"]),
         ("growth", ["growth", "distribution", "hook", "传播", "转发", "增长", "开头"]),
+        ("distributor", ["newsletter", "social", "video", "distribution", "publish", "传播物料", "分发", "发布"]),
     ]
     for agent, keywords in rules:
         if any(keyword in text for keyword in keywords):
@@ -52,7 +55,15 @@ def _select_agents(instruction: str) -> list[str]:
     if "reviewer" not in selected:
         selected.append("reviewer")
 
-    return selected[:3]
+    agent_settings = settings or get_agent_settings()
+    enabled = set(agent_settings.get("enabled_collaboration_agents", []))
+    max_agents = agent_settings.get("max_collaboration_agents", 2)
+    filtered = [agent for agent in selected if agent in enabled and agent in COLLABORATION_AGENTS]
+
+    if not filtered and "reviewer" in enabled:
+        filtered = ["reviewer"]
+
+    return filtered[:max_agents]
 
 
 def _article_content(article_data: dict) -> str:
@@ -175,7 +186,17 @@ async def run_collaboration(article_num: int, instruction: str, ws_manager):
         })
         return
 
-    agents = _select_agents(instruction)
+    settings = get_agent_settings()
+    agents = _select_agents(instruction, settings)
+    if not agents:
+        await ws_manager.broadcast({
+            "type": "collaboration_status",
+            "articleNum": article_num,
+            "status": "blocked",
+            "agents": [],
+            "message": "No enabled collaboration agent matched this instruction.",
+        })
+        return
     collaboration = article_data.get("collaboration", {})
     collaboration["last_instruction"] = instruction
     collaboration["active_agents"] = agents

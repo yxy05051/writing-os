@@ -171,7 +171,9 @@ export default function HomePage() {
               agents={agents}
               articleNum={selectedArticleNum}
               articleState={currentArticle}
+              agentSettings={writingState?.agentSettings}
               onArticleSaved={refreshWritingState}
+              onAgentSettingsSaved={refreshWritingState}
               onArticleChange={setSelectedArticleNum}
               onOpenEditor={() => setActiveView('editor')}
             />

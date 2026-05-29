@@ -1504,6 +1504,87 @@ body {
   line-height: 1.5;
 }
 
+.agent-settings-panel {
+  margin-top: 16px;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.agent-settings-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.agent-settings-head h3 {
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.agent-settings-head p,
+.agent-settings-slider span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.agent-settings-head > span {
+  flex-shrink: 0;
+  color: #93c5fd;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: var(--radius);
+  padding: 3px 7px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.agent-settings-slider {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.agent-settings-slider input {
+  width: 100%;
+  accent-color: var(--accent-blue);
+}
+
+.agent-settings-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.agent-settings-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.agent-settings-row input {
+  flex-shrink: 0;
+  accent-color: var(--accent-green);
+}
+
+.agent-settings-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .curriculum-view {
   height: 100%;
   min-height: 0;

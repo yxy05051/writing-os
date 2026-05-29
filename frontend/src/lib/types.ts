@@ -71,7 +71,14 @@ export interface WritingState {
   completed: number[]
   articles: Record<number, ArticleState>
   coveredConcepts: string[]
+  agentSettings: AgentSettings
   pipeline?: PipelineRuntimeState
+}
+
+export interface AgentSettings {
+  requiredPipelineAgents: string[]
+  enabledCollaborationAgents: string[]
+  maxCollaborationAgents: number
 }
 
 export interface PipelineRuntimeState {

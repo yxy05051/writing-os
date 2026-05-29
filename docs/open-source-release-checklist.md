@@ -32,6 +32,7 @@ This checklist tracks what must be true before publishing Writing OS as a public
 - Dependabot has been added for npm, pip, and GitHub Actions updates.
 - Security reporting and GitHub publishing docs have been added.
 - A local prepublish check script has been added for tests, build, audit, and repository safety scanning.
+- Agent settings let users limit optional specialist agents and cap collaboration-round API usage.
 
 ## Before Publishing
 
