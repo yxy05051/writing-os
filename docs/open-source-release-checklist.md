@@ -28,7 +28,7 @@ This checklist tracks what must be true before publishing Writing OS as a public
 - README includes a generated dashboard screenshot.
 - Runtime state, local environment files, dependency folders, and build artifacts are ignored by Git.
 - GitHub Actions CI has been added for backend tests, frontend type checks, build, and audit.
-- Dependabot has been added for npm, pip, and GitHub Actions updates.
+- Automated dependency update PRs are intentionally disabled for the first public release; enable them after the project stabilizes.
 - Security reporting and GitHub publishing docs have been added.
 - A local prepublish check script has been added for tests, build, audit, and repository safety scanning.
 - A local release dry-run script has been added to copy a clean candidate folder, reinstall dependencies, and run checks outside the working tree.
