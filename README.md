@@ -14,7 +14,7 @@ Writing OS supports two common starting points:
 - Writers who already have a plan and want to import article briefs.
 - Writers who only have a rough idea and need guided planning before writing.
 
-The current open-source version runs as a local web app. A desktop wrapper can be added later after the core workflow is stable.
+The current open-source version runs as a local web app and includes an Electron desktop preview. The desktop preview opens Writing OS in an app window and starts the local services for you.
 
 ![Writing OS dashboard](docs/assets/writing-os-open-source-dashboard.png)
 
@@ -30,7 +30,14 @@ The current open-source version runs as a local web app. A desktop wrapper can b
 
 ## Quick Start
 
-Clone the repository, then start the app:
+Clone the repository, then choose one of these startup paths.
+
+Desktop preview:
+
+- Windows: double-click `windows/start-desktop.bat`
+- macOS, Linux, or WSL: run `bash scripts/start-desktop.sh`
+
+Browser/dev mode:
 
 - Windows: double-click `windows/start-dev.bat`
 - macOS, Linux, or WSL: run `bash scripts/start-dev.sh`
@@ -58,7 +65,7 @@ For full setup and usage instructions, start here:
 
 ## Project Status
 
-Writing OS is an early open-source release. The core local workflow is usable, but the product is still evolving. Expect the planning model, agent settings, and desktop packaging to keep improving.
+Writing OS is an early open-source release. The core local workflow is usable, and the Electron desktop preview is the first step toward a packaged desktop app. Expect the planning model, agent settings, and installer packaging to keep improving.
 
 ## Development Checks
 

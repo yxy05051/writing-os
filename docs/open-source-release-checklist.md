@@ -5,8 +5,8 @@ This checklist tracks what must be true before publishing Writing OS as a public
 ## Current Status
 
 - The open-source version is kept in its own project folder and can be published as a standalone repository.
-- It is a local web app first.
-- A desktop wrapper can be added later with Tauri or Electron.
+- It is a local web app first, with an Electron desktop preview included.
+- A packaged desktop installer can be added after the desktop preview stabilizes.
 - Private project content has been removed from the open-source folder.
 - The default workflow uses four required agents: research, structure, writing, and final editor.
 - Optional agents are available on demand: reader simulation, fact check, style, review, growth, and distribution.
@@ -49,4 +49,4 @@ This checklist tracks what must be true before publishing Writing OS as a public
 - Plan import normalizer for rough outlines, spreadsheets, and pasted notes.
 - Agent configuration screen to control cost and optional specialist agents.
 - Local project templates for different writing use cases.
-- Optional desktop app wrapper after the web app workflow stabilizes.
+- Packaged desktop installers after the Electron desktop preview stabilizes.

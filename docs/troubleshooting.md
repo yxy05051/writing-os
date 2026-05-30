@@ -2,6 +2,24 @@
 
 Use this guide when Writing OS does not start, the browser cannot connect, or agents do not produce output.
 
+## Desktop Preview Does Not Open
+
+First confirm the terminal window is still open. The desktop preview starts local services in the background, and closing the terminal stops them.
+
+Windows users should start with:
+
+```text
+windows/start-desktop.bat
+```
+
+macOS, Linux, or WSL users should start with:
+
+```bash
+bash scripts/start-desktop.sh
+```
+
+If the desktop window reports that Writing OS could not start, check that Python 3.11+, Node.js 22.12+, and npm are installed.
+
 ## The Website Does Not Open
 
 First confirm the app is running:

@@ -4,7 +4,7 @@ This guide is for first-time users who want to run Writing OS locally and use it
 
 ## 1. What Writing OS Is
 
-Writing OS is a local web app. It runs on your computer and opens in your browser.
+Writing OS is a local writing app. It can run in a desktop preview window or as a local web app in your browser.
 
 The app has three main areas:
 
@@ -17,33 +17,42 @@ The app has three main areas:
 You need:
 
 - Python 3.11 or newer.
-- Node.js 20 or newer.
+- Node.js 20 or newer for browser/dev mode.
+- Node.js 22.12 or newer is recommended for the desktop preview.
 - npm.
 - An OpenAI-compatible API key.
 
-Windows users should also have WSL installed. The provided Windows scripts run the app through WSL.
+For browser/dev mode on Windows, WSL is recommended. The desktop preview can run from a normal Windows checkout if Python, Node.js, and npm are installed.
 
 ## 3. Start The App
 
-### Windows
+### Option A: Desktop Preview
 
-Double-click:
+The desktop preview opens Writing OS in an app window and starts the backend and frontend services for you.
+
+Windows:
+
+```text
+windows/start-desktop.bat
+```
+
+macOS, Linux, or WSL:
+
+```bash
+bash scripts/start-desktop.sh
+```
+
+Keep the terminal window open while using the desktop preview.
+
+### Option B: Browser / Dev Mode
+
+Windows:
 
 ```text
 windows/start-dev.bat
 ```
 
-Keep the terminal window open while using Writing OS.
-
-Then open:
-
-```text
-http://localhost:3000
-```
-
-### macOS, Linux, or WSL
-
-From the project root:
+macOS, Linux, or WSL:
 
 ```bash
 bash scripts/start-dev.sh
@@ -172,7 +181,7 @@ For lower cost, start with fewer optional agents and only enable specialists whe
 
 ## 11. Stop The App
 
-Close the terminal window, or press:
+Close the desktop window or terminal window, or press:
 
 ```text
 Ctrl + C

@@ -50,6 +50,9 @@ backend/venv/bin/pip install -r backend/requirements-dev.txt
 echo "== Install frontend dependencies =="
 (cd frontend && npm ci)
 
+echo "== Install desktop dependencies =="
+(cd desktop && npm ci --ignore-scripts)
+
 echo "== Run prepublish checks in clean candidate =="
 bash scripts/prepublish-check.sh
 

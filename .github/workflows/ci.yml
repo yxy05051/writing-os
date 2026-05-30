@@ -61,3 +61,31 @@ jobs:
       - name: Audit frontend dependencies
         working-directory: frontend
         run: npm audit --audit-level=moderate
+
+  desktop:
+    name: Desktop Preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install desktop dependencies
+        working-directory: desktop
+        run: npm ci --ignore-scripts
+
+      - name: Check desktop shell syntax
+        run: node --check desktop/main.cjs
+
+      - name: Check desktop startup script
+        run: bash -n scripts/start-desktop.sh
+
+      - name: Audit desktop dependencies
+        working-directory: desktop
+        run: npm audit --audit-level=moderate

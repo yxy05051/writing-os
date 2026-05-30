@@ -24,6 +24,11 @@ echo "== Frontend build =="
 echo "== Frontend audit =="
 (cd frontend && npm audit --audit-level=moderate)
 
+echo "== Desktop preview checks =="
+node --check desktop/main.cjs
+bash -n scripts/start-desktop.sh
+(cd desktop && npm audit --audit-level=moderate)
+
 echo "== Repository safety scan =="
 if command -v rg >/dev/null 2>&1; then
   rg -n \
