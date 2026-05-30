@@ -1,13 +1,20 @@
 # Writing OS
 
-Writing OS is a local multi-agent writing workspace for planning, drafting, reviewing, and polishing long-form article projects.
+![CI](https://github.com/yxy05051/writing-os/actions/workflows/ci.yml/badge.svg)
+![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)
 
-It is designed for two kinds of writers:
+Writing OS is a local multi-agent writing workspace for planning, drafting, reviewing, editing, and publishing long-form writing projects.
+
+It is built for writers who want an AI writing system that keeps the whole project visible: the plan, the agent work, the final draft, and the publication state.
+
+## Who It Is For
+
+Writing OS supports two common starting points:
 
 - Writers who already have a plan and want to import article briefs.
 - Writers who only have a rough idea and need guided planning before writing.
 
-The current open-source version runs as a local web app. Use the included start scripts to run the backend and frontend together. A desktop wrapper can be added later with Tauri or Electron after the core workflow is stable.
+The current open-source version runs as a local web app. A desktop wrapper can be added later after the core workflow is stable.
 
 ![Writing OS dashboard](docs/assets/writing-os-open-source-dashboard.png)
 
@@ -21,25 +28,25 @@ The current open-source version runs as a local web app. Use the included start 
 - Supports imported plans and guided plan creation.
 - Includes cost controls for optional specialist agents.
 
-## Start Here
+## Quick Start
 
-For complete setup and usage instructions, open the documentation center:
-
-**[docs/README.md](docs/README.md)**
-
-Fast start:
+Clone the repository, then start the app:
 
 - Windows: double-click `windows/start-dev.bat`
 - macOS, Linux, or WSL: run `bash scripts/start-dev.sh`
 - Browser URL: `http://localhost:3000`
 
-The first run creates `backend/.env`. Add your API key there, then restart the app.
+The first run creates `backend/.env`. Add your API key, then restart the app.
 
 ```env
 OPENAI_API_KEY=
 OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_MODEL=gpt-4o
 ```
+
+For full setup and usage instructions, start here:
+
+**[Documentation Center](docs/README.md)**
 
 ## Documentation
 
@@ -48,6 +55,10 @@ OPENAI_MODEL=gpt-4o
 - [Planning Model](docs/planning-model.md)
 - [Troubleshooting](docs/troubleshooting.md)
 - [GitHub Publishing](docs/github-publishing.md)
+
+## Project Status
+
+Writing OS is an early open-source release. The core local workflow is usable, but the product is still evolving. Expect the planning model, agent settings, and desktop packaging to keep improving.
 
 ## Development Checks
 
