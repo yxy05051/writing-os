@@ -26,7 +26,10 @@ echo "== Frontend audit =="
 
 echo "== Desktop preview checks =="
 node --check desktop/main.cjs
+node --check desktop/check-production-frontend.cjs
 bash -n scripts/start-desktop.sh
+bash -n scripts/build-desktop-preview.sh
+node desktop/check-production-frontend.cjs
 (cd desktop && npm audit --audit-level=moderate)
 
 echo "== Repository safety scan =="

@@ -58,6 +58,9 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Smoke test production frontend
+        run: node desktop/check-production-frontend.cjs
+
       - name: Audit frontend dependencies
         working-directory: frontend
         run: npm audit --audit-level=moderate
@@ -81,10 +84,14 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Check desktop shell syntax
-        run: node --check desktop/main.cjs
+        run: |
+          node --check desktop/main.cjs
+          node --check desktop/check-production-frontend.cjs
 
       - name: Check desktop startup script
-        run: bash -n scripts/start-desktop.sh
+        run: |
+          bash -n scripts/start-desktop.sh
+          bash -n scripts/build-desktop-preview.sh
 
       - name: Audit desktop dependencies
         working-directory: desktop

@@ -12,9 +12,12 @@ const backendPort = String(process.env.WRITING_OS_BACKEND_PORT || "8000");
 const frontendPort = String(process.env.WRITING_OS_FRONTEND_PORT || "3000");
 const backendUrl = `http://127.0.0.1:${backendPort}`;
 const frontendUrl = `http://127.0.0.1:${frontendPort}`;
+const wsUrl = `ws://127.0.0.1:${backendPort}/ws`;
+const desktopMode = String(process.env.WRITING_OS_DESKTOP_MODE || "auto").toLowerCase();
 
 const isWindows = process.platform === "win32";
 const children = [];
+const servers = [];
 let mainWindow;
 
 function npmCommand() {
@@ -146,6 +149,32 @@ function ensureFrontend() {
   if (!fs.existsSync(path.join(frontendDir, "node_modules"))) {
     runChecked(npmCommand(), ["install"], { cwd: frontendDir }, "Installing frontend dependencies");
   }
+
+  if (shouldUseProductionFrontend() && !hasFrontendBuild()) {
+    runChecked(npmCommand(), ["run", "build"], { cwd: frontendDir, env: frontendEnv() }, "Building frontend");
+  }
+}
+
+function frontendEnv() {
+  return {
+    ...process.env,
+    WRITING_OS_BACKEND_URL: backendUrl,
+    NEXT_PUBLIC_WRITING_OS_WS_URL: wsUrl
+  };
+}
+
+function hasFrontendBuild() {
+  return fs.existsSync(path.join(frontendDir, ".next", "BUILD_ID"));
+}
+
+function shouldUseProductionFrontend() {
+  if (desktopMode === "dev" || desktopMode === "development") {
+    return false;
+  }
+  if (desktopMode === "prod" || desktopMode === "production") {
+    return true;
+  }
+  return hasFrontendBuild();
 }
 
 function startProcess(command, args, options) {
@@ -166,7 +195,38 @@ function startProcess(command, args, options) {
   return child;
 }
 
-function startServices() {
+async function startProductionFrontend() {
+  setStatus("Starting production frontend", `Opening ${frontendUrl}`);
+  process.env.WRITING_OS_BACKEND_URL = backendUrl;
+  process.env.NEXT_PUBLIC_WRITING_OS_WS_URL = wsUrl;
+  const next = require(path.join(frontendDir, "node_modules", "next"));
+  const nextApp = next({
+    dev: false,
+    dir: frontendDir,
+    hostname: "127.0.0.1",
+    port: Number(frontendPort)
+  });
+  const handler = nextApp.getRequestHandler();
+
+  await nextApp.prepare();
+
+  const server = http.createServer((request, response) => handler(request, response));
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(Number(frontendPort), "127.0.0.1", resolve);
+  });
+  servers.push(server);
+}
+
+function startDevelopmentFrontend() {
+  setStatus("Starting development frontend", `Opening ${frontendUrl}`);
+  startProcess(npmCommand(), ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", frontendPort], {
+    cwd: frontendDir,
+    env: frontendEnv()
+  });
+}
+
+async function startServices() {
   setStatus("Starting Writing OS", "Preparing local services.");
   ensureEnvFile();
   ensureBackend();
@@ -176,14 +236,12 @@ function startServices() {
     cwd: backendDir
   });
 
-  startProcess(npmCommand(), ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", frontendPort], {
-    cwd: frontendDir,
-    env: {
-      ...process.env,
-      WRITING_OS_BACKEND_URL: backendUrl,
-      NEXT_PUBLIC_WRITING_OS_WS_URL: `ws://127.0.0.1:${backendPort}/ws`
-    }
-  });
+  const productionFrontend = shouldUseProductionFrontend();
+  if (productionFrontend) {
+    await startProductionFrontend();
+  } else {
+    startDevelopmentFrontend();
+  }
 }
 
 function waitForHttp(url, timeoutMs = 60000) {
@@ -214,6 +272,10 @@ function waitForHttp(url, timeoutMs = 60000) {
 }
 
 function stopServices() {
+  for (const server of servers.splice(0)) {
+    server.close();
+  }
+
   for (const child of children.splice(0)) {
     if (child.killed || !child.pid) {
       continue;
@@ -246,7 +308,7 @@ async function createWindow() {
   });
 
   try {
-    startServices();
+    await startServices();
     setStatus("Opening Writing OS", "Waiting for the local web app to be ready.");
     await waitForHttp(frontendUrl);
     await mainWindow.loadURL(frontendUrl);

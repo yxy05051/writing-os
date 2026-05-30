@@ -30,7 +30,15 @@ For browser/dev mode on Windows, WSL is recommended. The desktop preview can run
 
 The desktop preview opens Writing OS in an app window and starts the backend and frontend services for you.
 
+For the best desktop experience, prepare the production frontend once first.
+
 Windows:
+
+```text
+windows/build-desktop-preview.bat
+```
+
+Then start:
 
 ```text
 windows/start-desktop.bat
@@ -39,10 +47,11 @@ windows/start-desktop.bat
 macOS, Linux, or WSL:
 
 ```bash
+bash scripts/build-desktop-preview.sh
 bash scripts/start-desktop.sh
 ```
 
-Keep the terminal window open while using the desktop preview.
+Keep the terminal window open while using the desktop preview. If you skip the build step, the desktop preview falls back to development mode.
 
 ### Option B: Browser / Dev Mode
 

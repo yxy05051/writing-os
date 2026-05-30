@@ -9,16 +9,18 @@ First confirm the terminal window is still open. The desktop preview starts loca
 Windows users should start with:
 
 ```text
+windows/build-desktop-preview.bat
 windows/start-desktop.bat
 ```
 
 macOS, Linux, or WSL users should start with:
 
 ```bash
+bash scripts/build-desktop-preview.sh
 bash scripts/start-desktop.sh
 ```
 
-If the desktop window reports that Writing OS could not start, check that Python 3.11+, Node.js 22.12+, and npm are installed.
+If the desktop window reports that Writing OS could not start, check that Python 3.11+, Node.js 22.12+, and npm are installed. If production mode fails, delete `frontend/.next`, run the build script again, and restart the desktop preview.
 
 ## The Website Does Not Open
 

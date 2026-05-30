@@ -34,6 +34,9 @@ Clone the repository, then choose one of these startup paths.
 
 Desktop preview:
 
+- Prepare production desktop preview:
+  - Windows: double-click `windows/build-desktop-preview.bat`
+  - macOS, Linux, or WSL: run `bash scripts/build-desktop-preview.sh`
 - Windows: double-click `windows/start-desktop.bat`
 - macOS, Linux, or WSL: run `bash scripts/start-desktop.sh`
 
@@ -65,7 +68,7 @@ For full setup and usage instructions, start here:
 
 ## Project Status
 
-Writing OS is an early open-source release. The core local workflow is usable, and the Electron desktop preview is the first step toward a packaged desktop app. Expect the planning model, agent settings, and installer packaging to keep improving.
+Writing OS is an early open-source release. The core local workflow is usable, and the Electron desktop preview can run against a production frontend build. Expect the planning model, agent settings, and installer packaging to keep improving.
 
 ## Development Checks
 

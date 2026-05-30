@@ -30,6 +30,7 @@ rsync -a "$ROOT"/ "$DEST"/ \
   --exclude 'data/' \
   --exclude 'plans/' \
   --exclude 'frontend/node_modules/' \
+  --exclude 'desktop/node_modules/' \
   --exclude 'frontend/.next/' \
   --exclude 'frontend/test-results/' \
   --exclude 'frontend/tsconfig.tsbuildinfo' \
