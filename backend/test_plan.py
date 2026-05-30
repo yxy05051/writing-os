@@ -1,4 +1,5 @@
-from plan import preview_article_plan_text
+import plan as plan_module
+from plan import get_plan_source, preview_article_plan_text
 
 
 def test_preview_article_plan_text_parses_common_markdown_headings():
@@ -38,3 +39,35 @@ Key points:
     assert plan[1]["constraints"] == ["Keep it concrete"]
     assert plan[2]["full_title"] == "Article 002 | Core workflow"
     assert plan[2]["goal"] == "Explain the repeatable workflow."
+
+
+def test_get_plan_source_prefers_imported_plans(tmp_path, monkeypatch):
+    plan_dir = tmp_path / "plans"
+    plan_dir.mkdir()
+    imported = plan_dir / "imported-plan.md"
+    imported.write_text("## Article 001 | Imported\n\nGoal: Test.\n", encoding="utf-8")
+    default = tmp_path / "example.md"
+    default.write_text("## Article 001 | Example\n\nGoal: Test.\n", encoding="utf-8")
+
+    monkeypatch.setattr(plan_module, "PLAN_DIR", plan_dir)
+    monkeypatch.setattr(plan_module, "DEFAULT_PLAN", default)
+
+    source = get_plan_source()
+
+    assert source["source"] == "imported"
+    assert source["path"] == str(plan_dir)
+    assert source["files"] == [str(imported)]
+
+
+def test_get_plan_source_falls_back_to_example_plan(tmp_path, monkeypatch):
+    plan_dir = tmp_path / "plans"
+    default = tmp_path / "example.md"
+    default.write_text("## Article 001 | Example\n\nGoal: Test.\n", encoding="utf-8")
+
+    monkeypatch.setattr(plan_module, "PLAN_DIR", plan_dir)
+    monkeypatch.setattr(plan_module, "DEFAULT_PLAN", default)
+
+    source = get_plan_source()
+
+    assert source["source"] == "example"
+    assert source["path"] == str(default)

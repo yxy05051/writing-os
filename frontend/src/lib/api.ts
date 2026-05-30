@@ -12,7 +12,19 @@ export interface PlanPreviewArticle {
   title: string
   full_title: string
   goal: string
+  audience?: string
+  reader_level?: string
   tree_position: string
+  tree_position_detail?: {
+    path?: string
+    layer_role?: string
+    parent?: string
+    children?: string
+  }
+  key_points?: string[]
+  constraints?: string[]
+  next_hook?: string
+  outline?: string
 }
 
 function normalizeAgentSettings(raw: unknown): AgentSettings {
@@ -34,10 +46,12 @@ function normalizeAgentSettings(raw: unknown): AgentSettings {
 
 export interface PlanPreviewResponse {
   status?: string
+  source?: 'imported' | 'example' | 'empty'
   article_count: number
   article_numbers: number[]
   articles: PlanPreviewArticle[]
   path?: string
+  files?: string[]
 }
 
 async function request<T>(
@@ -242,20 +256,6 @@ export async function saveDraft(
   })
 }
 
-export async function publishToNotion(articleNum: number): Promise<void> {
-  return request<void>('/publish/notion', {
-    method: 'POST',
-    body: JSON.stringify({ article_num: articleNum }),
-  })
-}
-
-export async function finalizeArticle(articleNum: number): Promise<void> {
-  return request<void>('/publish/finalize', {
-    method: 'POST',
-    body: JSON.stringify({ article_num: articleNum }),
-  })
-}
-
 export async function confirmArticlePublished(articleNum: number): Promise<ConfirmPublishedResponse> {
   const raw = await request<Record<string, unknown>>('/articles/confirm-official-published', {
     method: 'POST',
@@ -291,6 +291,10 @@ export async function importPlan(content: string): Promise<PlanPreviewResponse> 
     method: 'POST',
     body: JSON.stringify({ content }),
   })
+}
+
+export async function fetchCurrentPlan(): Promise<PlanPreviewResponse> {
+  return request<PlanPreviewResponse>('/plans/current')
 }
 
 export async function generatePlan(input: {

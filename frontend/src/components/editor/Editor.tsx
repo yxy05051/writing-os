@@ -12,9 +12,7 @@ import Underline from '@tiptap/extension-underline'
 import WordCount from './WordCount'
 import {
   confirmArticlePublished,
-  finalizeArticle,
   importArticle,
-  publishToNotion,
   saveDraft,
 } from '@/lib/api'
 import type { ArticleState } from '@/lib/types'
@@ -118,14 +116,6 @@ function buildEditorSnapshot(
   return JSON.stringify({ articleNum, title, content, published })
 }
 
-function toPublishFormat(title: string, plainText: string): string {
-  const paragraphs = plainText
-    .split(/\n+/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-  return `${title.trim()}\n\n${paragraphs.join('\n\n')}`.trim()
-}
-
 function ToolbarButton({ label, title, active, disabled, onClick }: ToolbarButtonProps) {
   return (
     <button
@@ -158,7 +148,6 @@ export default function Editor({
   const [plainText, setPlainText] = useState('')
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved')
   const [articleNumInput, setArticleNumInput] = useState(String(articleNum))
-  const [isPublishing, setIsPublishing] = useState(false)
   const [isConfirmingPublished, setIsConfirmingPublished] = useState(false)
   const [publishMsg, setPublishMsg] = useState('')
   const [isImportOpen, setIsImportOpen] = useState(false)
@@ -345,35 +334,6 @@ export default function Editor({
     onArticleSaved?.()
   }, [articleNum, htmlContent, onArticleSaved, title])
 
-  const handleCopyPublish = useCallback(() => {
-    const formatted = toPublishFormat(title, plainText)
-    navigator.clipboard.writeText(formatted).catch(() => {
-      const el = document.createElement('textarea')
-      el.value = formatted
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
-    })
-    setPublishMsg('Copied clean publishing text')
-    setTimeout(() => setPublishMsg(''), 2000)
-  }, [title, plainText])
-
-  const handlePublishNotion = useCallback(async () => {
-    setIsPublishing(true)
-    setPublishMsg('')
-    try {
-      await saveCurrentFinal()
-      await publishToNotion(articleNum)
-      setPublishMsg('Synced to Notion')
-    } catch (e) {
-      setPublishMsg('Notion sync failed')
-    } finally {
-      setIsPublishing(false)
-      setTimeout(() => setPublishMsg(''), 3000)
-    }
-  }, [articleNum, saveCurrentFinal])
-
   const handleFinalize = useCallback(async () => {
     try {
       await saveCurrentFinal()
@@ -403,7 +363,7 @@ export default function Editor({
       lastLoadedArticleRef.current = nextArticleNum
       lastLoadedSnapshotRef.current = buildEditorSnapshot(nextArticleNum, '', '')
       onArticleSaved?.()
-      setPublishMsg(`Published and frozen. Switched to Article ${String(nextArticleNum).padStart(3, '0')}.`)
+      setPublishMsg(`Published. Switched to Article ${String(nextArticleNum).padStart(3, '0')}.`)
       setTimeout(() => setPublishMsg(''), 3500)
     } catch (e) {
       console.error('Confirm publish failed:', e)
@@ -536,7 +496,7 @@ export default function Editor({
               whiteSpace: 'nowrap',
             }}
           >
-            Published and frozen
+            已发布
           </span>
         )}
 
@@ -645,12 +605,6 @@ export default function Editor({
         )}
 
         <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
-          <button className="btn btn-secondary" style={{ fontSize: 12, padding: '5px 11px' }} onClick={handleCopyPublish} title="Copy clean publishing text">
-            Copy publish text
-          </button>
-          <button className="btn btn-blue" style={{ fontSize: 12, padding: '5px 11px' }} onClick={handlePublishNotion} disabled={isPublishing}>
-            {isPublishing ? 'Syncing...' : 'Sync Notion'}
-          </button>
           <button className="btn btn-green" style={{ fontSize: 12, padding: '5px 11px' }} onClick={handleFinalize}>
             Save final draft
           </button>
@@ -666,7 +620,7 @@ export default function Editor({
             disabled={isOfficialPublished || isConfirmingPublished}
             title="After confirmation, agents will no longer intervene in this article"
           >
-            {isOfficialPublished ? 'Published' : isConfirmingPublished ? 'Confirming...' : 'Confirm published'}
+            已发布
           </button>
         </div>
       </div>

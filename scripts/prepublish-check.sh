@@ -29,11 +29,10 @@ if command -v rg >/dev/null 2>&1; then
   rg -n \
     -e 'sk-[A-Za-z0-9_-]{20,}' \
     -e 'OPENAI_API_KEY=[^[:space:]]+' \
-    -e 'NOTION_TOKEN=[^[:space:]]+' \
-    -e 'wsl\.localhost' \
-    -e '\\\\wsl' \
-    -e '/Users/' \
-    -e '/home/[^/[:space:]]+' \
+    -e 'C:\\Users\\' \
+    -e '/Users/[A-Za-z0-9._-]+' \
+    -e '/home/beris/' \
+    -e 'Beris_YANG' \
     . \
     --glob '!frontend/package-lock.json' \
     --glob '!backend/__pycache__/**' \

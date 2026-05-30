@@ -25,6 +25,27 @@ def _read_plan_text() -> str:
     return ""
 
 
+def get_plan_source() -> dict:
+    plan_files = sorted(PLAN_DIR.glob("*.md")) if PLAN_DIR.exists() else []
+    if plan_files:
+        return {
+            "source": "imported",
+            "path": str(PLAN_DIR),
+            "files": [str(path) for path in plan_files],
+        }
+    if DEFAULT_PLAN.exists():
+        return {
+            "source": "example",
+            "path": str(DEFAULT_PLAN),
+            "files": [str(DEFAULT_PLAN)],
+        }
+    return {
+        "source": "empty",
+        "path": "",
+        "files": [],
+    }
+
+
 def _parse_article_plan_text(text: str) -> dict[int, dict]:
     plan: dict[int, dict] = {}
     matches = list(ARTICLE_HEADING_RE.finditer(text))

@@ -7,82 +7,33 @@ It is designed for two kinds of writers:
 - Writers who already have a plan and want to import article briefs.
 - Writers who only have a rough idea and need guided planning before writing.
 
-The current open-source version runs as a local web app. A desktop wrapper can be added later with Tauri or Electron after the core workflow is stable.
+The current open-source version runs as a local web app. Use the included start scripts to run the backend and frontend together. A desktop wrapper can be added later with Tauri or Electron after the core workflow is stable.
 
 ![Writing OS dashboard](docs/assets/writing-os-open-source-dashboard.png)
 
-## Features
+## What It Does
 
-- Multi-agent writing pipeline: research, structure, writing, final editing.
-- Optional specialist agents: reader simulation, fact checking, style, review, growth, distribution.
-- Visual agent office showing which agents are working and what each delivered.
-- Rich-text final draft editor.
-- Published/frozen state so agents stop acting on finalized articles.
-- Planning model for importing existing plans or generating a new plan with guidance.
-- Optional export integrations, starting with Notion.
-- Agent settings for limiting specialist agents and controlling API spend.
+- Runs a four-agent writing pipeline: research, structure, writing, and final editing.
+- Lets optional specialist agents join when needed: reader simulation, fact check, style, review, growth, and distribution.
+- Shows a visual agent workspace with agent status and deliverables.
+- Provides a rich-text final draft editor.
+- Freezes published articles so agents stop revising them.
+- Supports imported plans and guided plan creation.
+- Includes cost controls for optional specialist agents.
 
-## Planning Modes
+## Start Here
 
-Writing OS supports two planning paths:
+For complete setup and usage instructions, open the documentation center:
 
-1. Import an existing plan.
-   Use `examples/plans/markdown-plan-template.md` as the recommended format.
+**[docs/README.md](docs/README.md)**
 
-2. Generate a plan with guidance.
-   The planner asks about topic, audience, desired outcome, depth, publishing channel, and approximate length, then creates article-level briefs.
+Fast start:
 
-See `docs/planning-model.md` for the full model.
+- Windows: double-click `windows/start-dev.bat`
+- macOS, Linux, or WSL: run `bash scripts/start-dev.sh`
+- Browser URL: `http://localhost:3000`
 
-## Quick Start
-
-### Backend
-
-```bash
-cd backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-# edit .env and add OPENAI_API_KEY
-uvicorn main:app --host 0.0.0.0 --port 8000
-```
-
-For backend tests:
-
-```bash
-cd backend
-pip install -r requirements-dev.txt
-PYTHONPATH=. pytest -q
-```
-
-For a full prepublish check:
-
-```bash
-bash scripts/prepublish-check.sh
-```
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-export WRITING_OS_BACKEND_URL=http://127.0.0.1:8000
-export NEXT_PUBLIC_WRITING_OS_WS_URL=ws://127.0.0.1:8000/ws
-npm run dev -- --hostname 0.0.0.0 --port 3000
-```
-
-Open `http://localhost:3000`.
-
-To run on alternate ports:
-
-```bash
-WRITING_OS_BACKEND_PORT=8100 WRITING_OS_FRONTEND_PORT=3100 bash scripts/start-dev.sh
-```
-
-## Configuration
-
-Backend configuration lives in `backend/.env`.
+The first run creates `backend/.env`. Add your API key there, then restart the app.
 
 ```env
 OPENAI_API_KEY=
@@ -90,35 +41,29 @@ OPENAI_BASE_URL=https://api.openai.com/v1
 OPENAI_MODEL=gpt-4o
 ```
 
-Optional Notion export:
+## Documentation
 
-```env
-NOTION_TOKEN=
-NOTION_DATABASE_ID=
+- [Documentation Center](docs/README.md)
+- [User Guide](docs/user-guide.md)
+- [Planning Model](docs/planning-model.md)
+- [Troubleshooting](docs/troubleshooting.md)
+- [GitHub Publishing](docs/github-publishing.md)
+
+## Development Checks
+
+Run the normal local check:
+
+```bash
+bash scripts/prepublish-check.sh
 ```
 
-Notion is not required for the core writing workflow. If these values are empty, users can still copy clean publishing text from the editor and manage publishing elsewhere.
+Run a clean release rehearsal before publishing:
 
-## Importing Plans
-
-Create a `plans/` folder at the project root and place one or more Markdown files inside it.
-
-Recommended article format:
-
-```md
-## Article 001 | The orientation article
-
-Goal: Establish the map for the whole series.
-Reader level: Beginner.
-Tree position: Foundation > Orientation.
-Key points:
-- Explain why the topic matters
-- Define the main problem
-- Tell readers how the series will progress
-Next hook: Move from orientation to the core workflow.
+```bash
+bash scripts/release-dry-run.sh
 ```
 
-Only article number, title, and a brief/goal are required. Richer fields produce better agent output.
+The dry run creates a clean candidate folder, excludes local state and secrets, reinstalls dependencies, and runs checks outside the working tree.
 
 ## Repository Safety
 
@@ -130,17 +75,11 @@ Do not commit:
 - private article drafts
 - private planning documents
 
-Optional local forbidden-word checks can be added in `forbidden-patterns.local`. This file is ignored by Git.
-
 ## Contributing
 
-See `CONTRIBUTING.md` for local development, test commands, and privacy rules for public contributions.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local development, test commands, and privacy rules for public contributions.
 
-## Publishing
-
-See `docs/github-publishing.md` for GitHub publishing steps.
-
-For vulnerability reporting and secret-handling guidance, see `SECURITY.md`.
+For vulnerability reporting and secret-handling guidance, see [SECURITY.md](SECURITY.md).
 
 ## License
 

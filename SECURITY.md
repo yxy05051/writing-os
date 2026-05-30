@@ -25,7 +25,7 @@ Never commit:
 
 - `.env` files
 - API keys
-- Notion or other integration tokens
+- external integration tokens
 - private drafts
 - private planning documents
 - local machine paths that identify a contributor

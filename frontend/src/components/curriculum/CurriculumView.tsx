@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
-import { CURRICULUM_ARTICLES, CURRICULUM_MIND_MAP, CURRICULUM_PHASES } from '@/lib/curriculum'
-import { generatePlan, importPlan, previewPlan, type PlanPreviewResponse } from '@/lib/api'
+import React, { useEffect, useMemo, useState } from 'react'
+import { buildCurriculumFromPlan, CURRICULUM_ARTICLES } from '@/lib/curriculum'
+import { fetchCurrentPlan, generatePlan, importPlan, previewPlan, type PlanPreviewResponse } from '@/lib/api'
 import type { WritingState } from '@/lib/types'
 
 interface CurriculumViewProps {
@@ -120,8 +120,10 @@ export default function CurriculumView({
   const [planningMode, setPlanningMode] = useState<'import' | 'guided'>('import')
   const [planText, setPlanText] = useState(planTemplate)
   const [planPreview, setPlanPreview] = useState<PlanPreviewResponse | null>(null)
+  const [currentPlan, setCurrentPlan] = useState<PlanPreviewResponse | null>(null)
   const [planStatus, setPlanStatus] = useState('')
   const [isPlanBusy, setIsPlanBusy] = useState(false)
+  const [isCurrentPlanLoading, setIsCurrentPlanLoading] = useState(true)
   const [isAiPlanning, setIsAiPlanning] = useState(false)
   const [guidedTopic, setGuidedTopic] = useState('')
   const [guidedAudience, setGuidedAudience] = useState('')
@@ -130,16 +132,49 @@ export default function CurriculumView({
   const [guidedChannel, setGuidedChannel] = useState('Long-form articles')
   const [guidedLength, setGuidedLength] = useState(6)
   const completed = new Set(writingState?.completed ?? [])
-  const articles = useMemo(
-    () => CURRICULUM_ARTICLES.filter((article) => article.phase === phaseId),
-    [phaseId]
+  const curriculum = useMemo(
+    () => buildCurriculumFromPlan(currentPlan?.articles ?? []),
+    [currentPlan]
   )
-  const phase = CURRICULUM_PHASES.find((item) => item.id === phaseId) ?? CURRICULUM_PHASES[0]
-  const current = CURRICULUM_ARTICLES.find((article) => article.num === selectedArticleNum)
+  const articles = useMemo(
+    () => curriculum.articles.filter((article) => article.phase === phaseId),
+    [curriculum.articles, phaseId]
+  )
+  const phase = curriculum.phases.find((item) => item.id === phaseId) ?? curriculum.phases[0]
+  const current = curriculum.articles.find((article) => article.num === selectedArticleNum)
+
+  useEffect(() => {
+    let cancelled = false
+    setIsCurrentPlanLoading(true)
+    fetchCurrentPlan()
+      .then((result) => {
+        if (cancelled) return
+        setCurrentPlan(result.article_count ? result : null)
+        setPlanPreview(result.article_count ? result : null)
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setIsCurrentPlanLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    const targetPhase = curriculum.articles.find((article) => article.num === selectedArticleNum)?.phase
+    const phaseStillExists = curriculum.phases.some((item) => item.id === phaseId)
+    if (targetPhase && targetPhase !== phaseId) {
+      setPhaseId(targetPhase)
+    } else if (!phaseStillExists && curriculum.phases[0]) {
+      setPhaseId(curriculum.phases[0].id)
+    }
+  }, [curriculum.articles, curriculum.phases, phaseId, selectedArticleNum])
 
   const handleSelect = (articleNum: number) => {
     onSelectArticle(articleNum)
-    const targetPhase = CURRICULUM_ARTICLES.find((article) => article.num === articleNum)?.phase
+    const targetPhase = curriculum.articles.find((article) => article.num === articleNum)?.phase
     if (targetPhase) setPhaseId(targetPhase)
   }
 
@@ -166,6 +201,11 @@ export default function CurriculumView({
     try {
       const result = await importPlan(planText)
       setPlanPreview(result)
+      setCurrentPlan(result)
+      const target = result.article_numbers.includes(selectedArticleNum)
+        ? selectedArticleNum
+        : result.article_numbers[0]
+      if (target) handleSelect(target)
       setPlanStatus(`Imported ${result.article_count} articles. New writing tasks will use this plan.`)
     } catch (error) {
       setPlanStatus(error instanceof Error ? error.message : 'Failed to import plan.')
@@ -224,10 +264,14 @@ export default function CurriculumView({
         <p>
           Import an existing plan, or use the planning workflow to turn a rough idea into a structured article series.
         </p>
+        <div className="curriculum-source">
+          <span>{isCurrentPlanLoading ? 'Loading plan' : currentPlan?.source === 'imported' ? 'Imported plan' : 'Example plan'}</span>
+          <strong>{currentPlan?.article_count ?? curriculum.articles.length} articles</strong>
+        </div>
 
         <div className="curriculum-phase-list">
-          {CURRICULUM_PHASES.map((item) => {
-            const doneCount = CURRICULUM_ARTICLES.filter(
+          {curriculum.phases.map((item) => {
+            const doneCount = curriculum.articles.filter(
               (article) => article.phase === item.id && completed.has(article.num)
             ).length
             return (
@@ -381,7 +425,7 @@ export default function CurriculumView({
           </div>
 
           <div className="curriculum-map-roots">
-            {CURRICULUM_MIND_MAP.map((root) => (
+            {curriculum.mindMap.map((root) => (
               <article key={root.id} className="mind-root">
                 <button
                   type="button"

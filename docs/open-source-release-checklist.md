@@ -17,13 +17,12 @@ This checklist tracks what must be true before publishing Writing OS as a public
 - Frontend TypeScript check passes.
 - Frontend production build passes.
 - `npm audit` reports zero vulnerabilities.
-- Private keyword scan has no hits for the private article series, custom branding, personal paths, or platform-specific WeChat wording.
+- Private keyword scan has no hits for private article series names, custom branding, personal paths, or platform-specific wording.
 - Plan import supports a structured Markdown template and a loose-import path for future Planning Agent normalization.
 - Project Planner now has UI entry points for importing an existing Markdown plan and creating an editable guided plan draft.
 - Project Planner has an optional AI Planning Agent flow that only calls the model when users explicitly request it.
 - Backend plan parsing has a focused pytest test.
 - Instruction routing has focused tests for English and Chinese article-start commands, including non-start instructions that mention article numbers.
-- Notion export is documented as an optional integration rather than a required core workflow.
 - Contributor guidance, issue templates, and a pull request template have been added.
 - A standalone local Git repository has been initialized.
 - README includes a generated dashboard screenshot.
@@ -32,10 +31,15 @@ This checklist tracks what must be true before publishing Writing OS as a public
 - Dependabot has been added for npm, pip, and GitHub Actions updates.
 - Security reporting and GitHub publishing docs have been added.
 - A local prepublish check script has been added for tests, build, audit, and repository safety scanning.
+- A local release dry-run script has been added to copy a clean candidate folder, reinstall dependencies, and run checks outside the working tree.
+- A GitHub-facing documentation center has been added under `docs/README.md`.
+- A first-time user guide has been added with start scripts, API-key setup, planning, agent workflow, editing, freezing, and cost-control steps.
+- A troubleshooting guide has been added for startup, port conflicts, API-key issues, planning import errors, and release checks.
 - Agent settings let users limit optional specialist agents and cap collaboration-round API usage.
 
 ## Before Publishing
 
+- Run `bash scripts/release-dry-run.sh` and inspect the clean candidate folder it creates.
 - Do a final manual file review before the first public push.
 - Install or authenticate GitHub CLI, or create an empty GitHub repository in the browser.
 - Push `main` to GitHub and confirm CI passes.

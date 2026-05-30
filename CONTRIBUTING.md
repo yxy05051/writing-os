@@ -44,9 +44,5 @@ npm audit --audit-level=moderate
 - Keep AI calls explicit. Optional agents and planning flows should not spend API credits unless the user clearly starts them.
 - Keep private writing content out of fixtures, examples, screenshots, and docs.
 - Prefer generic project language over platform-specific assumptions.
-- Add focused tests when changing planning import, instruction routing, pipeline orchestration, or publishing behavior.
+- Add focused tests when changing planning import, instruction routing, pipeline orchestration, or final-draft behavior.
 - Preserve the four default required agents unless a change includes migration notes and UI updates.
-
-## Optional Integrations
-
-Notion export is optional. Changes to integrations should degrade gracefully when credentials are missing and should not block the core local writing workflow.

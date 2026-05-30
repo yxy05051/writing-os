@@ -104,7 +104,7 @@ export default function Sidebar({
           <div className="sidebar-article-num">#{String(articleNum).padStart(3, '0')}</div>
           <div className="sidebar-article-title">{articleState?.title || 'Untitled article'}</div>
           <div className={isPublished ? 'sidebar-freeze is-frozen' : 'sidebar-freeze'}>
-            {isPublished ? 'Published and frozen' : 'Final draft can be edited'}
+            {isPublished ? '已发布' : 'Final draft can be edited'}
           </div>
         </section>
 
@@ -138,7 +138,7 @@ export default function Sidebar({
           </div>
           <div className={isPublished ? 'sidebar-lane-step active frozen' : 'sidebar-lane-step'}>
             <span />
-            Published freeze
+            已发布
           </div>
         </section>
       </div>

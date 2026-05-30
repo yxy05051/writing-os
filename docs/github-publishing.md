@@ -2,6 +2,16 @@
 
 This repository is ready to publish after a final manual review.
 
+## Local Release Dry Run
+
+Before creating the public GitHub repository, run:
+
+```bash
+bash scripts/release-dry-run.sh
+```
+
+The script creates a clean release-candidate directory, excludes local runtime state and secrets, reinstalls dependencies, and runs the normal prepublish checks from that clean copy. Treat this as the local rehearsal for a first-time GitHub clone.
+
 ## Current Local State
 
 - Branch: `main`
@@ -40,6 +50,12 @@ Run the full prepublish check:
 
 ```bash
 bash scripts/prepublish-check.sh
+```
+
+For the stricter clean-copy rehearsal, run:
+
+```bash
+bash scripts/release-dry-run.sh
 ```
 
 On Windows with WSL, you can also run `windows/prepublish-check.bat`.

@@ -34,6 +34,156 @@ export interface CurriculumMindMapNode {
   children?: CurriculumMindMapNode[]
 }
 
+export interface PlanArticleLike {
+  num: number
+  title: string
+  full_title?: string
+  goal?: string
+  tree_position?: string
+  tree_position_detail?: {
+    path?: string
+    layer_role?: string
+    parent?: string
+    children?: string
+  }
+  key_points?: string[]
+  next_hook?: string
+}
+
+export interface BuiltCurriculum {
+  phases: CurriculumPhase[]
+  articles: CurriculumArticle[]
+  mindMap: CurriculumMindMapNode[]
+}
+
+function formatRange(nums: number[]) {
+  if (!nums.length) return '---'
+  const sorted = [...nums].sort((a, b) => a - b)
+  const first = String(sorted[0]).padStart(3, '0')
+  const last = String(sorted[sorted.length - 1]).padStart(3, '0')
+  return first === last ? first : `${first}-${last}`
+}
+
+function slug(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'node'
+}
+
+function treeSegments(article: PlanArticleLike) {
+  const rawPath = article.tree_position_detail?.path || article.tree_position || ''
+  const segments = rawPath
+    .split('>')
+    .map((item) => item.trim())
+    .filter(Boolean)
+  return segments.length ? segments : ['Project plan', article.title]
+}
+
+export function buildCurriculumFromPlan(planArticles: PlanArticleLike[]): BuiltCurriculum {
+  const sorted = [...planArticles].sort((a, b) => a.num - b.num)
+  if (!sorted.length) {
+    return {
+      phases: CURRICULUM_PHASES,
+      articles: CURRICULUM_ARTICLES,
+      mindMap: CURRICULUM_MIND_MAP,
+    }
+  }
+
+  const rootOrder: string[] = []
+  const rootToPhase = new Map<string, number>()
+  for (const article of sorted) {
+    const root = treeSegments(article)[0]
+    if (!rootToPhase.has(root)) {
+      rootOrder.push(root)
+      rootToPhase.set(root, rootOrder.length)
+    }
+  }
+
+  const phases = rootOrder.map((root, index) => {
+    const nums = sorted
+      .filter((article) => treeSegments(article)[0] === root)
+      .map((article) => article.num)
+    const firstArticle = sorted.find((article) => treeSegments(article)[0] === root)
+    return {
+      id: index + 1,
+      title: `Phase ${index + 1}: ${root}`,
+      range: formatRange(nums),
+      goal: firstArticle?.goal || `Build the ${root} branch of this writing project.`,
+      articleCount: nums.length,
+    }
+  })
+
+  const articles = sorted.map((article, index) => {
+    const segments = treeSegments(article)
+    const root = segments[0]
+    const phase = rootToPhase.get(root) || 1
+    const phaseData = phases[phase - 1]
+    const keyPoints = article.key_points || []
+    const currentNode = segments[segments.length - 1] || article.title
+    return {
+      num: article.num,
+      phase,
+      phaseTitle: phaseData.title,
+      phaseRange: phaseData.range,
+      phaseGoal: phaseData.goal,
+      title: article.title,
+      goal: article.goal || article.next_hook || 'Clarify this article in the project plan.',
+      milestone: index === 0 || index === sorted.length - 1,
+      treePath: segments,
+      treePosition: segments.join(' > '),
+      treeDepth: Math.max(0, segments.length - 1),
+      branchTitle: root,
+      parentNode: segments.length > 1 ? segments[segments.length - 2] : root,
+      currentNode,
+      childNodes: keyPoints,
+      layerRole: article.tree_position_detail?.layer_role || keyPoints[0] || article.next_hook || article.goal || currentNode,
+    }
+  })
+
+  const mindMap = rootOrder.map((root) => {
+    const rootArticles = articles.filter((article) => article.branchTitle === root)
+    const childOrder: string[] = []
+    const childGroups = new Map<string, CurriculumArticle[]>()
+    for (const article of rootArticles) {
+      const childName = article.treePath[1] || article.currentNode
+      if (!childGroups.has(childName)) {
+        childOrder.push(childName)
+        childGroups.set(childName, [])
+      }
+      childGroups.get(childName)?.push(article)
+    }
+
+    return {
+      id: slug(root),
+      title: root,
+      summary: rootArticles[0]?.phaseGoal,
+      range: formatRange(rootArticles.map((article) => article.num)),
+      articleNums: rootArticles.map((article) => article.num),
+      children: childOrder.map((childName) => {
+        const childArticles = childGroups.get(childName) || []
+        return {
+          id: `${slug(root)}-${slug(childName)}`,
+          title: childName,
+          summary: childArticles[0]?.goal,
+          range: formatRange(childArticles.map((article) => article.num)),
+          articleNums: childArticles.map((article) => article.num),
+          children: childArticles
+            .filter((article) => article.treePath.length > 2)
+            .map((article) => ({
+              id: `${slug(root)}-${slug(childName)}-${article.num}`,
+              title: article.currentNode,
+              range: String(article.num).padStart(3, '0'),
+              articleNums: [article.num],
+            })),
+        }
+      }),
+    }
+  })
+
+  return { phases, articles, mindMap }
+}
+
 export const CURRICULUM_PHASES: CurriculumPhase[] = [
   {
     id: 1,

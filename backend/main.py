@@ -14,9 +14,8 @@ from ws_manager import WebSocketManager
 from pipeline import AGENT_ORDER, Pipeline
 from state import get_agent_settings, load_state, update_agent_settings, update_article, save_state, get_covered_concepts
 from lessons import load_lessons, add_lesson
-from publish import publish_to_notion, copy_for_publish
 from collaboration import run_collaboration
-from plan import get_article_plan, preview_article_plan_text, save_imported_plan
+from plan import get_article_plan, get_plan_source, load_article_plan, preview_article_plan_text, save_imported_plan
 from agents.planning import PlanningAgent
 
 
@@ -63,14 +62,6 @@ class FinalEditorRequest(BaseModel):
 class DeleteCollaborationLogRequest(BaseModel):
     article_num: int
     item_id: Optional[str] = None
-
-
-class PublishNotionRequest(BaseModel):
-    article_num: int
-
-
-class FinalizeRequest(BaseModel):
-    article_num: int
 
 
 class AddLessonRequest(BaseModel):
@@ -294,7 +285,14 @@ def _plan_preview_response(plan: dict[int, dict]) -> dict:
             "title": item["title"],
             "full_title": item["full_title"],
             "goal": item.get("goal", ""),
+            "audience": item.get("audience", ""),
+            "reader_level": item.get("reader_level", ""),
             "tree_position": item.get("tree_position", {}).get("path", ""),
+            "tree_position_detail": item.get("tree_position", {}),
+            "key_points": item.get("key_points", []),
+            "constraints": item.get("constraints", []),
+            "next_hook": item.get("next_hook", ""),
+            "outline": item.get("outline", ""),
         }
         for item in sorted(plan.values(), key=lambda row: row["num"])
     ]
@@ -349,6 +347,16 @@ async def get_articles():
         })
     result.sort(key=lambda x: x["article_num"])
     return result
+
+
+@app.get("/api/plans/current")
+async def current_plan():
+    plan = load_article_plan()
+    return {
+        "status": "loaded" if plan else "empty",
+        **get_plan_source(),
+        **_plan_preview_response(plan),
+    }
 
 
 @app.post("/api/plans/preview")
@@ -561,75 +569,6 @@ async def run_final_editor(req: FinalEditorRequest):
         raise HTTPException(status_code=409, detail="Pipeline is running. Try final integration later.")
     asyncio.create_task(pipeline.run_final_editor(req.article_num))
     return {"status": "started", "agent": "final_editor", "article_num": req.article_num}
-
-
-# ── Publish ───────────────────────────────────────────────────────────────────
-
-@app.post("/api/publish/notion")
-async def publish_notion(req: PublishNotionRequest):
-    state = load_state()
-    article_data = state.get("articles", {}).get(str(req.article_num))
-    if not article_data:
-        raise HTTPException(status_code=404, detail="Article not found")
-
-    outputs = article_data.get("agent_outputs", {})
-    content = (
-        article_data.get("draft_html")
-        or outputs.get("style")
-        or outputs.get("writer", "")
-    )
-    if not content:
-        raise HTTPException(status_code=400, detail="Article content is empty. Finish drafting first.")
-
-    title = article_data.get("title") or f"Article {req.article_num:03d}"
-
-    try:
-        success = await publish_to_notion(req.article_num, title, content)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-    if success:
-        update_article(req.article_num, {"notion_published": True})
-        return {"status": "published", "title": title}
-
-    raise HTTPException(status_code=500, detail="Publish failed")
-
-
-@app.post("/api/publish/finalize")
-async def finalize_article(req: FinalizeRequest):
-    state = load_state()
-    article_data = state.get("articles", {}).get(str(req.article_num))
-    if not article_data:
-        raise HTTPException(status_code=404, detail="Article not found")
-
-    outputs = article_data.get("agent_outputs", {})
-    if "draft_html" in article_data or "final_draft" in article_data:
-        content = article_data.get("draft_html") or article_data.get("final_draft") or ""
-    else:
-        content = outputs.get("style") or outputs.get("writer", "")
-    if not content:
-        update_article(req.article_num, {
-            "status": "finalized",
-            "final_draft": "",
-            "publish_copy": "",
-        })
-        return {"status": "finalized", "publish_content": ""}
-
-    formatted = await copy_for_publish(content)
-    update_article(req.article_num, {
-        "status": "finalized",
-        "final_draft": content,
-        "publish_copy": formatted,
-    })
-
-    completed = state.get("completed", [])
-    if req.article_num not in completed:
-        completed.append(req.article_num)
-        state["completed"] = sorted(completed)
-        state["current_article"] = req.article_num
-        save_state(state)
-
-    return {"status": "finalized", "publish_content": formatted}
 
 
 # ── Lessons ───────────────────────────────────────────────────────────────────

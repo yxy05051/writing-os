@@ -1629,6 +1629,31 @@ body {
   margin-top: 9px;
 }
 
+.curriculum-source {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.curriculum-source span {
+  min-width: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.curriculum-source strong {
+  color: #a7f3d0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
 .curriculum-phase-list {
   display: flex;
   flex-direction: column;
